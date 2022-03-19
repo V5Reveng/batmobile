@@ -12,44 +12,76 @@ void autonomous() {}
 
 class Robot {
 	private:
-			MotorSet binded;
-			pros::Controller master;
-			bool tank_control;
-
-			Robot(pros::controller_id_e_t controller_binding): master{ controller_binding } {
-				tank_control = true;
-			}
+		MotorSet binded;
+		pros::Controller master{ pros::Controller(CONTROLLER_MASTER) };
+		bool tank_control_enabled;
 
 	public:
-			Robot(MotorSet motor_set, pros::controller_id_e_t controller_binding): Robot(controller_binding) {
-				// MotorSet instance
-				binded = motor_set;
-			}
 
-			Robot(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports, pros::controller_id_e_t controller_binding): Robot(controller_binding) {
-				// MotorSet instant
-				binded = MotorSet(left_motors_ports, right_motors_ports);
-			}
+		Robot(MotorSet motor_set, pros::controller_id_e_t controller_binding) {
+			binded = motor_set;
+			master = pros::Controller(controller_binding);
+			tank_control_enabled = true;
+		}
 
-			void tank_control() {
-				binded.move_left_wheels(master.get_analog(ANALOG_LEFT_Y));
-				binded.move_right_wheels(master.get_analog(ANALOG_RIGHT_Y));
+		Robot(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports, pros::controller_id_e_t controller_binding) {
+			binded = MotorSet(left_motors_ports, right_motors_ports);
+			master = pros::Controller(controller_binding);
+			tank_control_enabled = true;
+		}
 
-				pros::delay(2);
-			}
+		void tank_control() {
+			binded.move_left_wheels(master.get_analog(ANALOG_LEFT_Y));
+			binded.move_right_wheels(master.get_analog(ANALOG_RIGHT_Y));
 
-			void arcade_control() {
-				int power = master.get_analog(ANALOG_LEFT_Y);
-				int turn = master.get_analog(ANALOG_RIGHT_X);
-				int left = power + turn;
-				int right = power - turn;
-				binded.move_left_wheels(left);
-				binded.move_right_wheels(right);
-			}
+			pros::delay(2);
+		}
 
-			void switch_control_type() {
+		void arcade_control() {
+			int power = master.get_analog(ANALOG_LEFT_Y);
+			int turn = master.get_analog(ANALOG_RIGHT_X);
+			int left = power + turn;
+			int right = power - turn;
+			binded.move_left_wheels(left);
+			binded.move_right_wheels(right);
+		}
 
-			}
+		/**
+		 * Uses the control scheme as mapped by the control_type.
+		 * 1 - tank control
+		 * 0 - arcade control
+		 */
+		void selected_control() {
+			tank_control_enabled ? tank_control() : arcade_control();
+		}
+
+		void switch_control_type() {
+			tank_control_enabled = !tank_control_enabled;
+		}
+
+		void set_control_type(int control_type) {
+			if (control_type != 0 || control_type != 1) 
+				throw std::invalid_argument("Control type must be either 0 or 1! Control type was: " + control_type);
+			
+			tank_control_enabled = control_type;
+		}
+
+		pros::Controller get_controller() {
+			return master;
+		}
+
+		MotorSet get_motor_set() {
+			return binded;
+		}
+
+		/**
+		 * Gets the current control type.
+		 * 1 - Tank Control
+		 * 2 - Arcade Control
+		 */
+		int get_control_type() {
+			return tank_control_enabled;
+		}
 };
 
 class MotorSet {
@@ -58,6 +90,8 @@ class MotorSet {
 		std::vector<pros::Motor> right_motors;
 
 	public:
+		MotorSet() {}
+
 		MotorSet(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports) {
 			left_motors = std::vector<pros::Motor> {
 				pros::Motor (left_motors_ports[0]),
@@ -90,7 +124,11 @@ void opcontrol() {
   	Robot robot (motors, CONTROLLER_MASTER);
 
 	while (true) {
-		robot.tank_control();
+		robot.selected_control();
+
+		if(robot.get_controller().get_digital(DIGITAL_Y)) {
+			robot.switch_control_type();
+		}
 
 		pros::delay(2);
 	}
