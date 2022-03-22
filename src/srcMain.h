@@ -1,8 +1,11 @@
 #ifndef SRC_MAIN
 #define SRC_MAIN
 
-class MotorSet;
-class Robot;
+namespace batmobile {
+    class MotorSet;
+    class Robot;
+    class ControllerScreen;
+}
 
 namespace ports {
     namespace individual {
