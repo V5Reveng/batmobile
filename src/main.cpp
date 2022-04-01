@@ -23,7 +23,7 @@ public:
   MotorSet(std::vector<int> left_motors_ports,
            std::vector<int> right_motors_ports) {
     left_motors = left_motors_ports;
-	right_motors = right_motors_ports;
+	  right_motors = right_motors_ports;
   }
 
   void move_left_wheels(int32_t voltage) {
@@ -35,7 +35,7 @@ public:
 
   void move_right_wheels(int32_t voltage) {
     for (int &port_num : right_motors) {
-      pros::c::motor_move(port_num, voltage);
+      pros::c::motor_move(port_num, -voltage);
     }
   }
 };
@@ -159,7 +159,10 @@ void opcontrol() {
 
     if (batmobile.get_controller().get_digital(DIGITAL_Y)) {
       batmobile.switch_control_type();
-      lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Tank) ? "Tank" : "Arcade");
+      lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Arcade) ? "Tank" : "Arcade");
+
+      // lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Tank) ? "Tank" : "Arcade");
+      
     }
 
     pros::delay(2);

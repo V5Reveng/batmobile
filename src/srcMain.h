@@ -10,19 +10,17 @@ namespace batmobile {
 namespace ports {
     namespace individual {
         // Change these depending on ports
-        constexpr int left_ports_top = 1;
-        constexpr int left_ports_bottom = 2;
-        constexpr int left_ports_middle = 5;
+        constexpr int left_ports_top = 20;
+        constexpr int left_ports_bottom = 17;
 
-        constexpr int right_ports_top = 3;
-        constexpr int right_ports_bottom = 4;
-        constexpr int right_ports_middle = 6;
+        constexpr int right_ports_top = 19;
+        constexpr int right_ports_bottom = 18;
     }
 
     namespace ind_ports = ports::individual;
 
-    std::vector<int> left_ports = std::vector<int> {ind_ports::left_ports_top, ind_ports::left_ports_middle, ind_ports::left_ports_bottom};
-    std::vector<int> right_ports = std::vector<int> {ind_ports::right_ports_top, ind_ports::right_ports_middle, ind_ports::right_ports_bottom};
+    std::vector<int> left_ports = std::vector<int> {ind_ports::left_ports_top, ind_ports::left_ports_bottom};
+    std::vector<int> right_ports = std::vector<int> {ind_ports::right_ports_top, ind_ports::right_ports_bottom};
 }
 
 namespace ind_ports = ports::ind_ports;
