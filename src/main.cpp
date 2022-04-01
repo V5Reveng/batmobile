@@ -48,10 +48,10 @@ enum class ControlType {
 class Robot {
 private:
   MotorSet binded;
-  pros::Controller master(CONTROLLER_MASTER);
+  pros::Controller master{ pros::Controller(CONTROLLER_MASTER) };
 
 public:
-  ControlType control_type = ControlType::Arcade;
+  ControlType control_type = ControlType::Tank;
 
 public:
   Robot(MotorSet motor_set, pros::controller_id_e_t controller_binding) {
@@ -111,7 +111,7 @@ public:
 
 class ControllerScreen {
 private:
-  pros::Controller master(CONTROLLER_MASTER);
+  pros::Controller master{ pros::Controller(CONTROLLER_MASTER) };
   int count = 0;
 
 public:
@@ -159,7 +159,7 @@ void opcontrol() {
 
     if (batmobile.get_controller().get_digital(DIGITAL_Y)) {
       batmobile.switch_control_type();
-      lcd.draw("C (Y): " + batmobile.get_control_type() ? "Tank" : "Arcade");
+      lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Tank) ? "Tank" : "Arcade");
     }
 
     pros::delay(2);
