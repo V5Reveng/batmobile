@@ -7,6 +7,10 @@ namespace batmobile {
     class ControllerScreen;
 }
 
+namespace config {
+  constexpr int max_speed_v = -85;
+}
+
 namespace ports {
     namespace individual {
         // Change these depending on ports
@@ -15,6 +19,8 @@ namespace ports {
 
         constexpr int right_ports_top = 19;
         constexpr int right_ports_bottom = 18;
+
+        constexpr int messi = 16;
     }
 
     namespace ind_ports = ports::individual;

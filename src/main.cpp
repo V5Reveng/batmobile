@@ -2,6 +2,9 @@
 #include "srcMain.h"
 #include <vector>
 
+// TODO reduce power to all motors by 1/3 (motor * 2/3)
+// TODO change from voltage to velocity
+
 void initialize() {}
 
 void disabled() {}
@@ -29,13 +32,16 @@ public:
   void move_left_wheels(int32_t voltage) {
     for (int &port_num : left_motors) {
 		// Uses C lib
-		pros::c::motor_move(port_num, voltage);
+
+		double modifier = 2/3;
+		double final_result = 
+		pros::c::motor_move(port_num, -voltage);
 	}
   }
 
   void move_right_wheels(int32_t voltage) {
     for (int &port_num : right_motors) {
-      pros::c::motor_move(port_num, -voltage);
+      pros::c::motor_move(port_num, voltage);
     }
   }
 };
@@ -63,6 +69,14 @@ public:
         pros::controller_id_e_t controller_binding) {
     binded = MotorSet(left_motors_ports, right_motors_ports);
     master = pros::Controller(controller_binding);
+  }
+
+  void kick_control() {
+	  if(master.get_digital(DIGITAL_R1)) {
+	 	pros::c::motor_move(ind_ports::messi, config::max_speed_v);
+	  } else {
+		  pros::c::motor_move(ind_ports::messi, 0);
+	  }
   }
 
   void tank_control() {
@@ -123,17 +137,6 @@ public:
   ControllerScreen(pros::Controller controller) : master(controller) {}
 
   void draw(int row, int column, std::string text) {
-    if (row < 0 || row > 2)
-      throw std::invalid_argument(
-          "Invalid bounds for row! Must be greater than zero (0) and less than "
-          "or equal to two (2), was: " +
-          row);
-    if (column < 0 || column > 18)
-      throw std::invalid_argument(
-          "Invalid bounds for row! Must be greater than zero (0) and less than "
-          "or equal to eighteen (18), was: " +
-          column);
-
     if (!(count % 25)) {
       master.set_text(row, column, text);
     }
@@ -141,10 +144,11 @@ public:
   }
 
   void draw(std::string text) {
-    if (!(count % 25)) {
-      master.set_text(0, 0, text);
-    }
-    count++;
+	static int myCount;
+	if (!(myCount % 25)) {
+    	master.set_text(0, 0, text);
+	}
+	myCount ++;
   }
 };
 }; // namespace batmobile
@@ -154,17 +158,28 @@ void opcontrol() {
   batmobile::Robot batmobile(motors, CONTROLLER_MASTER);
   batmobile::ControllerScreen lcd(batmobile.get_controller());
 
+  int count = 0;
   while (true) {
+
+	batmobile.get_controller().set_text(0, 0, "HELLO WORLD 1 ");
+
+
+	if(!(count % 25)) {
+		//batmobile.get_controller().set_text(0, 0, "HELLO WORLD");
+	}
+
     batmobile.selected_control();
+	batmobile.kick_control();
 
     if (batmobile.get_controller().get_digital(DIGITAL_Y)) {
       batmobile.switch_control_type();
-      lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Arcade) ? "Tank" : "Arcade");
 
       // lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Tank) ? "Tank" : "Arcade");
       
     }
 
+
+	count++;
     pros::delay(2);
   }
 }
