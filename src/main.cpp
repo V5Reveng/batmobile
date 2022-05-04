@@ -1,6 +1,7 @@
 #include "main.h"
 #include "srcMain.h"
 #include <vector>
+#include <algorithm>
 
 // TODO reduce power to all motors by 1/3 (motor * 2/3)
 // TODO change from voltage to velocity
@@ -19,30 +20,50 @@ class MotorSet {
 private:
   std::vector<int> left_motors;
   std::vector<int> right_motors;
+  std::vector<int> arm_motors;
+
+  std::vector<int> mobile_goal_motors;
 
 public:
   MotorSet() {}
 
   MotorSet(std::vector<int> left_motors_ports,
-           std::vector<int> right_motors_ports) {
+           std::vector<int> right_motors_ports, std::vector<int> arm_motor_ports, std::vector<int> mobile_goal_motors_ports) {
     left_motors = left_motors_ports;
 	  right_motors = right_motors_ports;
+    arm_motors = arm_motor_ports;
+    mobile_goal_motors = mobile_goal_motors_ports;
   }
 
-  void move_left_wheels(int32_t voltage) {
+  void move_left_wheels(int32_t velocity) {
     for (int &port_num : left_motors) {
-		// Uses C lib
-
-		double modifier = 2/3;
-		double final_result = 
-		pros::c::motor_move(port_num, -voltage);
-	}
+      // Uses C lib
+      pros::c::motor_move_velocity(port_num, -velocity * config::conversion);
+    }
   }
 
-  void move_right_wheels(int32_t voltage) {
+  void move_right_wheels(int32_t velocity) {
     for (int &port_num : right_motors) {
-      pros::c::motor_move(port_num, voltage);
+      pros::c::motor_move_velocity(port_num, velocity * config::conversion);
     }
+  }
+
+  void move_lift(int32_t velocity) {
+    for (int &port_num : arm_motors) {
+      pros::c::motor_move_velocity(port_num, velocity);
+    }
+  }
+
+  void move_mobile_goal_lift(double angle, int32_t velocity) {
+    angle = std::clamp(angle, config::closed_position, config::open_position);
+
+    for (int &port_num : mobile_goal_motors) {
+      pros::c::motor_move_absolute(port_num, angle, velocity);
+    }
+  }
+
+  double mobile_goal_position() const {
+    return pros::c::motor_get_position(mobile_goal_motors[0]);
   }
 };
 
@@ -65,15 +86,39 @@ public:
     master = pros::Controller(controller_binding);
   }
 
-  Robot(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports,
-        pros::controller_id_e_t controller_binding) {
-    binded = MotorSet(left_motors_ports, right_motors_ports);
+  Robot(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports, std::vector<int> arm_motor_ports, 
+        std::vector<int> mobile_goal_ports, pros::controller_id_e_t controller_binding) {
+    binded = MotorSet(left_motors_ports, right_motors_ports, arm_motor_ports, mobile_goal_ports);
     master = pros::Controller(controller_binding);
+  }
+
+  void lift_control(int32_t velocity) {
+    if (master.get_digital(DIGITAL_L1)) {
+      binded.move_lift(velocity);
+    } else {
+      binded.move_lift(0);
+    }
+  }
+
+  void mobile_goal_control(int32_t velocity) {
+    static double saved_position = binded.mobile_goal_position();
+
+    if (master.get_digital(DIGITAL_UP)) {
+      binded.move_mobile_goal_lift(saved_position, velocity);
+      saved_position = binded.mobile_goal_position();
+    } else if (master.get_digital(DIGITAL_DOWN)) {
+      binded.move_mobile_goal_lift(saved_position, -velocity);
+      saved_position = binded.mobile_goal_position();
+    } else {
+      if (saved_position > config::closed_threshold) {
+        binded.move_mobile_goal_lift(saved_position, config::MOTOR_MAX_VOLTAGE);
+      }
+    }
   }
 
   void kick_control() {
 	  if(master.get_digital(DIGITAL_R1)) {
-	 	pros::c::motor_move(ind_ports::messi, config::max_speed_v);
+	 	  pros::c::motor_move(ind_ports::messi, config::max_speed_v);
 	  } else {
 		  pros::c::motor_move(ind_ports::messi, 0);
 	  }
@@ -92,6 +137,9 @@ public:
     binded.move_left_wheels(left);
     binded.move_right_wheels(right);
   }
+
+  
+
 
   /**
    * Uses the control scheme as mapped by the control_type.
@@ -154,32 +202,20 @@ public:
 }; // namespace batmobile
 
 void opcontrol() {
-  batmobile::MotorSet motors(ports::left_ports, ports::right_ports);
+  batmobile::MotorSet motors(ports::left_ports, ports::right_ports, ports::arm_ports, ports::mobile_goal_ports);
   batmobile::Robot batmobile(motors, CONTROLLER_MASTER);
-  batmobile::ControllerScreen lcd(batmobile.get_controller());
+  //batmobile::ControllerScreen lcd(batmobile.get_controller());
 
-  int count = 0;
   while (true) {
 
-	batmobile.get_controller().set_text(0, 0, "HELLO WORLD 1 ");
-
-
-	if(!(count % 25)) {
-		//batmobile.get_controller().set_text(0, 0, "HELLO WORLD");
-	}
-
     batmobile.selected_control();
-	batmobile.kick_control();
+	  batmobile.kick_control();
 
     if (batmobile.get_controller().get_digital(DIGITAL_Y)) {
-      batmobile.switch_control_type();
-
-      // lcd.draw("C (Y): " + (batmobile.control_type == batmobile::ControlType::Tank) ? "Tank" : "Arcade");
-      
+      batmobile.switch_control_type();      
     }
 
 
-	count++;
     pros::delay(2);
   }
 }
