@@ -210,6 +210,8 @@ void opcontrol() {
 
     batmobile.selected_control();
 	  batmobile.kick_control();
+    batmobile.mobile_goal_control(100);
+    batmobile.lift_control(100);
 
     if (batmobile.get_controller().get_digital(DIGITAL_Y)) {
       batmobile.switch_control_type();      
