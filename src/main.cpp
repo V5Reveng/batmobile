@@ -27,8 +27,8 @@ private:
 public:
   MotorSet() {}
 
-  MotorSet(std::vector<int> left_motors_ports,
-           std::vector<int> right_motors_ports, std::vector<int> arm_motor_ports, std::vector<int> mobile_goal_motors_ports) {
+  MotorSet(std::vector<int>& left_motors_ports,
+           std::vector<int>& right_motors_ports, std::vector<int>& arm_motor_ports, std::vector<int>& mobile_goal_motors_ports) {
     left_motors = left_motors_ports;
 	  right_motors = right_motors_ports;
     arm_motors = arm_motor_ports;
@@ -81,13 +81,13 @@ public:
   ControlType control_type = ControlType::Tank;
 
 public:
-  Robot(MotorSet motor_set, pros::controller_id_e_t controller_binding) {
+  Robot(MotorSet& motor_set, pros::controller_id_e_t controller_binding) {
     binded = motor_set;
     master = pros::Controller(controller_binding);
   }
 
-  Robot(std::vector<int> left_motors_ports, std::vector<int> right_motors_ports, std::vector<int> arm_motor_ports, 
-        std::vector<int> mobile_goal_ports, pros::controller_id_e_t controller_binding) {
+  Robot(std::vector<int>& left_motors_ports, std::vector<int>& right_motors_ports, std::vector<int>& arm_motor_ports, 
+        std::vector<int>& mobile_goal_ports, pros::controller_id_e_t controller_binding) {
     binded = MotorSet(left_motors_ports, right_motors_ports, arm_motor_ports, mobile_goal_ports);
     master = pros::Controller(controller_binding);
   }
@@ -184,14 +184,14 @@ public:
 
   ControllerScreen(pros::Controller controller) : master(controller) {}
 
-  void draw(int row, int column, std::string text) {
+  void draw(int row, int column, std::string& text) {
     if (!(count % 25)) {
       master.set_text(row, column, text);
     }
     count++;
   }
 
-  void draw(std::string text) {
+  void draw(std::string& text) {
 	static int myCount;
 	if (!(myCount % 25)) {
     	master.set_text(0, 0, text);
