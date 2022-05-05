@@ -3,10 +3,11 @@
 #include <vector>
 #include <algorithm>
 
-// TODO reduce power to all motors by 1/3 (motor * 2/3)
-// TODO change from voltage to velocity
+batmobile::ControllerScreen lcd();
 
-void initialize() {}
+void initialize() {
+  pros::Task display_task(lcd.get_task());
+}
 
 void disabled() {}
 
@@ -175,6 +176,7 @@ class ControllerScreen {
 private:
   pros::Controller master{ pros::Controller(CONTROLLER_MASTER) };
   int count = 0;
+  std::function<void()> consumer ();
 
 public:
   ControllerScreen() {}
@@ -184,19 +186,24 @@ public:
 
   ControllerScreen(pros::Controller controller) : master(controller) {}
 
+  void configure(pros::Controller controller) : master(controller) {}
+
   void draw(int row, int column, std::string& text) {
-    if (!(count % 25)) {
-      master.set_text(row, column, text);
-    }
-    count++;
+    master.set_text(row, column, text);
+    pros::delay(50);
   }
 
   void draw(std::string& text) {
-	static int myCount;
-	if (!(myCount % 25)) {
-    	master.set_text(0, 0, text);
-	}
-	myCount ++;
+    master.set_text(0, 0, text);
+    pros::delay(50);
+  }
+
+  void create_task(const std::function<void()>& cons) {
+    consumer = cons; 
+  }
+
+  std::function<void()> &get_task() const {
+    return consumer;
   }
 };
 }; // namespace batmobile
@@ -204,10 +211,11 @@ public:
 void opcontrol() {
   batmobile::MotorSet motors(ports::left_ports, ports::right_ports, ports::arm_ports, ports::mobile_goal_ports);
   batmobile::Robot batmobile(motors, CONTROLLER_MASTER);
-  //batmobile::ControllerScreen lcd(batmobile.get_controller());
+
+  lcd.configure(batmobile.get_controller());
+  lcd.create_task()
 
   while (true) {
-
     batmobile.selected_control();
 	  batmobile.kick_control();
     batmobile.mobile_goal_control(100);
