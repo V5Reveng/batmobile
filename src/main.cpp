@@ -119,6 +119,8 @@ public:
 	} else {
 	  if (saved_position > config::closed_threshold) {
 		binded.move_mobile_goal_lift(saved_position, config::MOTOR_MAX_VOLTAGE);
+	  } else {
+		binded.move_mobile_goal_lift(saved_position, 0);
 	  }
 	}
   }
@@ -214,7 +216,7 @@ public:
 void opcontrol() {
   while (true) {
 	bat.selected_control();
-	  bat.kick_control();
+	bat.kick_control();
 	bat.mobile_goal_control(100);
 	bat.lift_control(100);
 
