@@ -102,6 +102,8 @@ public:
   void lift_control(int32_t velocity) {
 	if (master.get_digital(DIGITAL_L1)) {
 	  binded.move_lift(velocity);
+	} else if (master.get_digital(DIGITAL_L2)) {
+	  binded.move_lift(-velocity);
 	} else {
 	  binded.move_lift(0);
 	}
@@ -110,10 +112,10 @@ public:
   void mobile_goal_control(int32_t velocity) {
 	static double saved_position = binded.mobile_goal_position();
 
-	if (master.get_digital(DIGITAL_UP)) {
+	if (master.get_digital(DIGITAL_R1)) {
 	  binded.move_mobile_goal_lift(saved_position, velocity);
 	  saved_position = binded.mobile_goal_position();
-	} else if (master.get_digital(DIGITAL_DOWN)) {
+	} else if (master.get_digital(DIGITAL_R2)) {
 	  binded.move_mobile_goal_lift(saved_position, -velocity);
 	  saved_position = binded.mobile_goal_position();
 	} else {
@@ -125,7 +127,10 @@ public:
 	}
   }
 
+  /* This method of movement is now deprecated, as any outreach event
+  requiring the kicker (the messi) is now over */
   void kick_control() {
+	
 	  if(master.get_digital(DIGITAL_R1)) {
 		   pros::c::motor_move(ind_ports::messi, config::max_speed_v);
 	  } else {

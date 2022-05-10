@@ -7,7 +7,7 @@ There are various controls to control the batmobile. This document will cover
     - Changing Control Schemes
 - Moving the Arm Lift
 - Moving the Mobile Goal Lift
-    - Nuances and Important Notices
+- Important Notices
 
 ## The Driving Control Schemes
 There are two driving control schemes available for use with the batmobile: **Tank** or **Arcade**.
@@ -59,3 +59,21 @@ The current control scheme is displayed on the LCD of the V5 *master* controller
 
 ## Moving the Arm Lift
 
+The Arm Lift can have many uses. It is controlled by pressing the digital buttons **L1** and **L2**.
+- Press **L1** to move the lift up
+- Press **L2** to move the lift down
+
+That's it! The mobile goal lift is a little bit more complicated, however.
+
+## Moving the Mobile Goal Lift
+
+The mobile goal lift is used to pick up and lift a mobile goal.
+- Press **R1** to move the lift up
+- Press **R2** to move the lift down
+
+If the mobile goal lift reaches the top of its movement, then its motor will **max out** and it will stay at the top. This allows for drivers to not have to always hold down the up button while carrying the goal.
+
+## Important Notices
+
+### About the Mobile Goal and Arm Lift
+Since these lifts are digital, they must be provided a value in the code to move up or down by.
