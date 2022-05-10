@@ -4,6 +4,7 @@
 namespace batmobile {
     class MotorSet;
     class Robot;
+    enum ControlType;
     class ControllerScreen;
 }
 
@@ -16,6 +17,15 @@ namespace config {
   constexpr double open_position = 0.0;
 
   constexpr auto conversion = 200.0/127.0;
+
+  std::string &get_control_scheme(batmobile::ControlType& type) {
+      switch (type) {
+          case ControlType::Tank:
+            return "Tank";
+          case ControlType::Arcade:
+            return "Arcade";
+      }
+  }
 }
 
 namespace ports {
