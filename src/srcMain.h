@@ -22,7 +22,7 @@ namespace config
 
 	constexpr auto conversion = 200.0 / 127.0;
 
-	std::string get_control_scheme(batmobile::ControlType const& type);
+	std::string &get_control_scheme(const batmobile::ControlType &type);
 }
 
 namespace ports

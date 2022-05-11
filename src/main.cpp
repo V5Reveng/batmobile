@@ -9,22 +9,27 @@ enum class batmobile::ControlType
 	Arcade,
 };
 
-std::string config::get_control_scheme(const batmobile::ControlType &type)
+std::string &config::get_control_scheme(const batmobile::ControlType &type)
 {
+	std::string cts = "";
 	switch (type)
 	{
 	case batmobile::ControlType::Tank:
-		return "Tank";
+		cts = "Tank";
+		break;
 	case batmobile::ControlType::Arcade:
-		return "Arcade";
+		cts = "Arcade";
+		break;
+	default:
+		cts = "[ERR] ICTS";
+		break;
 	}
 
-	return NULL;
+	return cts;
 }
 
 namespace batmobile
 {
-
 	class MotorSet
 	{
 	private:
@@ -71,6 +76,7 @@ namespace batmobile
 			}
 		}
 
+		// Taken from Matt Fellenz
 		void move_mobile_goal_lift(double angle, int32_t velocity)
 		{
 			angle = std::clamp(angle, config::closed_position, config::open_position);
@@ -155,7 +161,6 @@ namespace batmobile
   requiring the kicker (the messi) is now over */
 		void kick_control()
 		{
-
 			if (master.get_digital(DIGITAL_R1))
 			{
 				pros::c::motor_move(ind_ports::messi, config::max_speed_v);
@@ -252,7 +257,7 @@ batmobile::ControllerScreen lcd(bat.get_controller());
 
 void display()
 {
-	lcd.draw(config::get_control_scheme(bat.get_control_type()));
+	lcd.draw("D(Y): " + config::get_control_scheme(bat.get_control_type()));
 }
 
 void initialize()
